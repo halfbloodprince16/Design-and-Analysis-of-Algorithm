@@ -81,27 +81,61 @@ int main(int argc, char const *argv[])
 	scanf("%d",&v);
 	printf("Enter No. of Edges :");
 	scanf("%d",&e);
-
-	int g[e][2];
-	int a,b,c;
-
-	struct edges *ed;
-	ed = (struct edges*)malloc(e*sizeof(struct edges));
+	int graph[e][3];
 
 	for(i=0;i<e;i++)
 	{
 		printf("Enter Vertices(u,v) and weights :");
-		scanf("%d %d %d",&a,&b,&c);
-		ed[i].u = a;
-		ed[i].v = b;
-		ed[i].w = c;
+		scanf("%d %d %d",&graph[i][0],&graph[i][1],&graph[i][2]);
+	}
+	//handling duplicate edges
+	int count=0;
+	for(i=0;i<e-1;i++)
+	{
+		for(j=i+1;j<e;j++)
+		{
+			if(graph[i][0] == graph[j][0] && graph[i][1]==graph[j][1])
+			{
+				int w;
+				if(graph[i][2] < graph[j][2])
+				{
+					w = graph[i][2];
+				}
+				else
+				{
+					w = graph[j][2];
+				}
+				graph[i][2] = w;
+				graph[j][0] = -1;
+				graph[j][1] = -1;
+				count++;
+			}
 
-		g[i][0] = a;
-		g[i][1] = b;
+		}
+	}
+
+	int g[e-count][2];
+	int a,b,c;
+
+	struct edges *ed;
+	ed = (struct edges*)malloc((e-count)*sizeof(struct edges));
+	j=0;
+	for(i=0;i<e;i++)
+	{
+		if(graph[i][0]!=-1)
+		{
+			ed[j].u = graph[i][0];
+			ed[j].v = graph[i][1];
+			ed[j].w = graph[i][2];
+
+			g[j][0] = graph[i][0];
+			g[j][1] = graph[i][1];
+			j = j+1;
+		}
 	}
 
 	int flg;
-
+	e = e-count;
 	flg = bellmanford(ed,g,v,e);
 	if(flg==0){return printf("\nNo Negative Cycle"),0;}
 	printf("\nNegative Cycle Present");
