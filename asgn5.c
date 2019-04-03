@@ -1,68 +1,200 @@
 #include<stdio.h>
-#define N 4
+#include<stdlib.h>
 
-void printBoard(int board[N][N]) 
+int placequeen(int r2,int c2,int *ptr)
 {
-   for (int i = 0; i < N; i++) 
+   int r1,c1;
+   for(r1=0;r1<r2;r1++)
    {
-      for (int j = 0; j < N; j++)
+      c1=ptr[r1];
+      if(c1==c2 || abs(r1-r2)==abs(c1-c2)) //same column or diagonally adjacent
+         return 0; //queen cannot be placed
+   }
+   return 1;
+}
+
+void print(int n,int *ptr)
+{
+   int i,j,k;
+   for(i=0;i<=2*n+1;i++)
+      printf("-");
+   printf("\n");
+   for(i=0;i<n;i++)
+   {
+      for(j=0;j<n;j++)
       {
-      	printf("%d",board[i][j]);
-      }
+         printf("|");
+         if(j==ptr[i])
+            printf("Q");
+         else
+            printf(" ");
+       }
+      printf("|\n");
+      for(k=0;k<=2*n+1;k++)
+         printf("-");
       printf("\n");
    }
 }
 
-_Bool isValid(int board[N][N], int row, int col) 
+int iterative(int n,int sol)
 {
-   for (int i = 0; i < col; i++)   
-      if (board[row][i])
-         return 0;
-   for (int i=row, j=col; i>=0 && j>=0; i--, j--)
-      if (board[i][j])      
-         return 0;
-   for (int i=row, j=col; j>=0 && i<N; i++, j--)
-      if (board[i][j])   
-         return 0;
-   return 1;
-}
+   int *ptr;
+   ptr=(int*)malloc(n*sizeof(int));
+   int i,j,r=0,cnt=0,ch;
 
-_Bool solveNQueen(int board[N][N], int col)
-{
-   if (col >= N)          
-      return 1;
-   for (int i = 0; i < N; i++) 
-   {    
-      if (isValid(board, i, col)) 
+   for(i=0;i<n;i++)
+      ptr[i]=-1;
+
+   while(r!=-1) //terminating condn for n-solutions
+   {
+      ptr[r]++;
+      if(ptr[r]<n)
       {
-         board[i][col] = 1;     
-         if ( solveNQueen(board, col + 1))  
-            return 1;
-                   
-         board[i][col] = 0;      
+         if(placequeen(r,ptr[r],ptr))
+         {
+            if(r==n-1)
+            {
+               printf("\nSolution number %d for %d-Queen Problem ->\n",++cnt,n);
+               print(n,ptr);
+               if(sol==1)
+                  return 0;
+            }
+            else
+               r++;
+         }
+      }
+      else
+      {
+         ptr[r]=-1;
+         r--;
       }
    }
-   return 0;       
- }
-
-_Bool checkSolution() 
-{
-   int board[N][N];
-   for(int i = 0; i<N; i++)
-      for(int j = 0; j<N; j++)
-         board[i][j] = 0;      
-               
-   if (solveNQueen(board, 0) == 0) 
-   {     
-      printf("No Solution\n");
-      return 0;
-   }
-   printBoard(board);
-   return 1;
+   free(ptr);
+   return cnt;
 }
 
-int main() 
+void recursive(int n,int sol,int *ptr,int *pt,int r)//pt=p-> call by reference
 {
+   int i,j,c;
+   static int d; //terminating condition
 
-   checkSolution();
+   for(c=0;c<n;c++)
+   {
+      if(placequeen(r,c,ptr))
+      {
+         ptr[r]=c;
+         if(r==n-1)
+         {
+            (*pt)++;
+            printf("\nSolution number %d for %d-Queen Problem ->\n",*pt,n);
+            print(n,ptr);
+            if(sol==1)
+            {
+               d=1;
+               return;
+            }
+         }
+         else
+         {
+            recursive(n,sol,ptr,pt,r+1);
+         }
+      }
+      if(d==1)
+         return;
+   }
+}
+
+int main()
+{
+   int choice1,choice2,n,count,p;
+   int *ptr;
+   do
+   {
+      printf("\nN-Queen Problem using Backtracking");
+      printf("\n1.Iterative Solution");
+      printf("\n2.Recursive Solution");
+      printf("\n3.Exit");
+      printf("\n\nEnter your choice::");
+      scanf("%d",&choice1);
+      switch(choice1)
+      {
+         case 1:
+            do
+            {
+               printf("\nN-Queen Problem using Iterative Algorithm");
+               printf("\n1.Print All Solutions");
+               printf("\n2.Print Single Solution");
+               printf("\n3.Return to main menu");
+               printf("\n\nEnter your choice::");
+               scanf("%d",&choice2);
+               switch(choice2)
+               {
+                  case 1:
+                     printf("\nEnter the number of queens::");
+                     scanf("%d",&n);
+                     if(n<4)
+                        printf("\nSolution not possible!!!");
+                     else
+                     {
+                        count=iterative(n,0);
+                        printf("\nThe total number of solutions in %d-Queen Problem is %d\n",n,count);
+                     }
+                     break;
+                  case 2:
+                     printf("\nEnter the number of queens::");
+                     scanf("%d",&n);
+                     if(n<4)
+                        printf("\nSolution not possible!!!");
+                     else
+                        iterative(n,1);
+                     break;
+               }
+            }while(choice2!=3);
+            break;
+         case 2:
+            do
+            {
+               printf("\nN-Queen Problem using Recursive Algorithm");
+               printf("\n1.Print All Solutions");
+               printf("\n2.Print Single Solution");
+               printf("\n3.Return to main menu");
+               printf("\n\nEnter your choice::");
+               scanf("%d",&choice2);
+               switch(choice2)
+               {
+                  case 1:
+                     printf("\nEnter the number of queens::");
+                     scanf("%d",&n);
+                     if(n<4)
+                        printf("\nSolution not possible!!!");
+
+                     else
+                     {
+                        p=0;
+                        ptr=(int*)malloc(n*sizeof(int));
+                        recursive(n,0,ptr,&p,0);
+                        printf("\nThe total number of solutions in %d-Queen Problem is %d\n",n,p);
+                        free(ptr);
+                     }
+                     break;
+                  case 2:
+                     printf("\nEnter the number of queens::");
+                     scanf("%d",&n);
+                     if(n<4)
+                        printf("\nSolution not possible!!!");
+                     else
+                     {
+                        p=0;
+                        ptr=(int*)malloc(n*sizeof(int));
+                        recursive(n,1,ptr,&p,0);
+                        free(ptr);
+                     }
+                     break;
+               }
+            }while(choice2!=3);
+            break;
+         case 3 :
+            break;
+      }
+   }while(choice1!=3);
 }
